@@ -35,7 +35,7 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $postArray = $request->all();
@@ -60,6 +60,11 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+    
         $credentials = $request->only('email', 'password');
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
@@ -71,7 +76,7 @@ class UserController extends Controller
                 'address' => $user->address,
                 'id' => $user->id,
             ];
-
+    
             return response()->json([
                 'status' => 'success',
                 'data' => $success
@@ -79,13 +84,13 @@ class UserController extends Controller
         } else {
             $userExists = User::where('email', $request->email)->exists();
             $errorMessage = $userExists ? 'Incorrect email or password' : 'User not found.';
-
+    
             return response()->json([
                 'status' => 'error',
                 'data' => $errorMessage
-            ]);
+            ], 422);
         }
-    }
+    }    
 
     public function updateUserDetails(Request $request)
     {
